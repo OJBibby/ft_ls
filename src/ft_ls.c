@@ -6,7 +6,7 @@
 /*   By: obibby <obibby@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/25 19:41:18 by obibby            #+#    #+#             */
-/*   Updated: 2025/01/26 23:30:45 by obibby           ###   ########.fr       */
+/*   Updated: 2025/01/27 00:03:10 by obibby           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,10 +131,15 @@ int	add_path(char *path, char *dir, char **path_arr)
 {
 	int	i;
 
-	if (path[ft_strlen(path) - 1] != '/')
-		path = ft_strjoin(path, "/");
 	i = count_array(path_arr);
-	path_arr[i] = ft_strjoin(path, dir);
+	if (path[ft_strlen(path) - 1] != '/')
+	{
+		path = ft_strjoin(path, "/");
+		path_arr[i] = ft_strjoin(path, dir);
+		free(path);
+	}
+	else
+		path_arr[i] = ft_strjoin(path, dir);
 	if (!path_arr[i])
 	{
 		ft_printf("Memory allocation failed.\n");
