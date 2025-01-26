@@ -6,7 +6,7 @@
 /*   By: obibby <obibby@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/25 20:14:43 by obibby            #+#    #+#             */
-/*   Updated: 2025/01/26 12:50:06 by obibby           ###   ########.fr       */
+/*   Updated: 2025/01/26 19:45:38 by obibby           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include <unistd.h>
 # include <sys/stat.h>
 # include <dirent.h>
+# include <time.h>
 
 typedef struct s_flags
 {

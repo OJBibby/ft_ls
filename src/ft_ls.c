@@ -6,12 +6,13 @@
 /*   By: obibby <obibby@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/25 19:41:18 by obibby            #+#    #+#             */
-/*   Updated: 2025/01/26 19:42:38 by obibby           ###   ########.fr       */
+/*   Updated: 2025/01/26 23:30:45 by obibby           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./libft/libft.h"
 #include "ft_ls.h"
+#include <stdio.h>
 
 void	expl_paths(char **paths, t_flags *flags);
 
@@ -80,9 +81,24 @@ void	sort_by_time(char **path1, char **path2, t_flags *flags)
 {
 	struct stat	stats1;
 	struct stat	stats2;
+	char		*temp;
 
 	lstat(*path1, &stats1);
 	lstat(*path2, &stats2);
+	time_t mod_time1 = stats1.st_mtime;
+	time_t mod_time2 = stats2.st_mtime;
+	if (flags->r && mod_time1 > mod_time2)
+	{
+		temp = *path1;
+		*path1 = *path2;
+		*path2 = temp;
+	}
+	else if (mod_time1 < mod_time2)
+	{
+		temp = *path1;
+		*path1 = *path2;
+		*path2 = temp;
+	}
 }
 
 void	sort_array(char **paths, t_flags *flags)
@@ -91,18 +107,18 @@ void	sort_array(char **paths, t_flags *flags)
 	int		j;
 
 	i = 0;
-	j = 0;
 	while (paths[i])
 	{
 		j = i + 1;
 		while (paths[j])
 		{
 			if (flags->t)
-				sort_by_time(&paths[i], &paths[j], flags);
+				sort_by_time(paths + i, paths + j, flags);
 			else if (flags->r && ft_strncmp(paths[i], paths[j],
 					ft_strlen(paths[i]) + 1) < 0)
 				swap(paths + i, paths + j);
-			else if (ft_strncmp(paths[i], paths[j], ft_strlen(paths[i]) + 1) > 0)
+			else if (ft_strncmp(paths[i], paths[j],
+					ft_strlen(paths[i]) + 1) > 0)
 				swap(paths + i, paths + j);
 			j++;
 		}
@@ -149,26 +165,24 @@ void	read_dir(char *path, char **new_paths, char **files, t_flags *flags)
 {
 	DIR				*cur_dir;
 	struct dirent	*entry;
-	int				i;
 
 	cur_dir = opendir(path);
 	entry = readdir(cur_dir);
-	i = 0;
 	while (entry)
 	{
-		if (!flags->a && entry->d_name[0] == '.')
+		if (flags->a || entry->d_name[0] != '.')
 		{
-			entry = readdir(cur_dir);
-			continue ;
-		}
-		files[i++] = ft_strdup(entry->d_name);
-		if (flags->R && entry->d_type == 4)
-		{
-			if (add_path(path, entry->d_name, new_paths))
-				return ;
+			if (add_path(path, entry->d_name, files))
+				break ;
+			if (flags->R && entry->d_type == 4 && entry->d_name[0] != '.')
+			{
+				if (add_path(path, entry->d_name, new_paths))
+					break ;
+			}
 		}
 		entry = readdir(cur_dir);
 	}
+	closedir(cur_dir);
 }
 
 void	print_files(char **files, t_flags *flags)
@@ -180,32 +194,50 @@ void	print_files(char **files, t_flags *flags)
 	{
 		i = count_array(files) - 1;
 		while (i >= 0)
-			ft_printf("%s	", files[i--]);
+			ft_printf("%s	", ft_strrchr(files[i--], '/') + 1);
 	}
 	else
 	{
 		i = 0;
 		while (files[i])
-			ft_printf("%s	", files[i++]);
+			ft_printf("%s	", ft_strrchr(files[i++], '/') + 1);
 	}
 	if (files[0])
 		write(1, "\n", 1);
 	free_array(files);
 }
 
-void	print_result(char **path, char **files, \
+void	print_result(char **files, \
 			char **new_paths, t_flags *flags)
-{	
-	ft_printf("%s:\n", path[0]);
+{
 	print_files(files, flags);
-	if (path[1])
-		write(1, "\n", 1);
 	if (flags->R && new_paths[0])
 	{
-		sort_array(new_paths, flags->r);
+		sort_array(new_paths, flags);
 		expl_paths(new_paths, flags);
-		write(1, "\n", 1);
 	}
+}
+
+int	both_alloc(char **arr1, char **arr2)
+{
+	if (!arr1 && !arr2)
+	{
+		ft_printf("Memory allocation failed.\n");
+		return (0);
+	}
+	else if (!arr1)
+	{
+		ft_printf("Memory allocation failed.\n");
+		free(arr2);
+		return (0);
+	}
+	else if (!arr2)
+	{
+		ft_printf("Memory allocation failed.\n");
+		free(arr1);
+		return (0);
+	}
+	return (1);
 }
 
 void	expl_paths(char **paths, t_flags *flags)
@@ -218,18 +250,16 @@ void	expl_paths(char **paths, t_flags *flags)
 	i = 0;
 	while (paths[i])
 	{
+		write(1, "\n", 1);
+		ft_printf("%s:\n", paths[i]);
 		n = count_entries(paths[i]);
 		new_paths = ft_calloc(n + 1, sizeof(char *));
 		files = ft_calloc(n + 1, sizeof(char *));
-		if (!new_paths || !files)
-		{
-			ft_printf("Memory allocation failed.\n");
-			free_array(paths);
-			return ;
-		}
+		if (!both_alloc(new_paths, files))
+			break ;
 		read_dir(paths[i], new_paths, files, flags);
-		sort_array(files, flags->r);
-		print_result(paths + i, files, new_paths, flags);
+		sort_array(files, flags);
+		print_result(files, new_paths, flags);
 		i++;
 	}
 	free_array(paths);
@@ -352,7 +382,7 @@ char	**process_input(t_flags *flags, int argc, char **argv)
 	return (path);
 }
 
-void	init_flags(t_flags *flags)
+void	set_flags(t_flags *flags)
 {
 	flags->a = 0;
 	flags->l = 0;
@@ -362,13 +392,46 @@ void	init_flags(t_flags *flags)
 	return ;
 }
 
+void	enter_recurs(char **paths, t_flags *flags)
+{
+	char	**new_paths;
+	char	**files;
+	int		n;
+
+	n = count_entries(*paths);
+	new_paths = ft_calloc(n + 1, sizeof(char *));
+	files = ft_calloc(n + 1, sizeof(char *));
+	if (!both_alloc(new_paths, files))
+		return ;
+	read_dir(*paths, new_paths, files, flags);
+	sort_array(files, flags);
+	print_result(files, new_paths, flags);
+}
+
+void	init_loop(char **paths, t_flags *flags)
+{
+	int	i;
+
+	i = 0;
+	while (paths[i])
+	{
+		if (i > 0)
+			write(1, "\n", 1);
+		if (count_array(paths) > 1)
+			ft_printf("%s:\n", paths[i]);
+		enter_recurs(paths + i, flags);
+		i++;
+	}
+}
+
 int	main(int argc, char *argv[])
 {
 	t_flags	flags;
 	char	**path;
 
-	init_flags(&flags);
+	set_flags(&flags);
 	path = process_input(&flags, argc, argv);
-	expl_paths(path, &flags);
+	init_loop(path, &flags);
+	free_array(path);
 	return (0);
 }
