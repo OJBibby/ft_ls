@@ -6,7 +6,7 @@
 /*   By: obibby <obibby@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/25 19:41:18 by obibby            #+#    #+#             */
-/*   Updated: 2025/01/27 00:03:10 by obibby           ###   ########.fr       */
+/*   Updated: 2025/01/27 15:00:44 by obibby           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,12 +53,15 @@ void	free_array(char **array)
 	int	i;
 
 	i = 0;
+	if (!array)
+		return ;
 	while (array[i])
 	{
 		free(array[i]);
 		i++;
 	}
 	free(array);
+	array = NULL;
 	return ;
 }
 
@@ -85,15 +88,13 @@ void	sort_by_time(char **path1, char **path2, t_flags *flags)
 
 	lstat(*path1, &stats1);
 	lstat(*path2, &stats2);
-	time_t mod_time1 = stats1.st_mtime;
-	time_t mod_time2 = stats2.st_mtime;
-	if (flags->r && mod_time1 > mod_time2)
+	if (flags->r && stats1.st_mtime > stats2.st_mtime)
 	{
 		temp = *path1;
 		*path1 = *path2;
 		*path2 = temp;
 	}
-	else if (mod_time1 < mod_time2)
+	else if (stats1.st_mtime < stats2.st_mtime)
 	{
 		temp = *path1;
 		*path1 = *path2;
@@ -127,9 +128,9 @@ void	sort_array(char **paths, t_flags *flags)
 	return ;
 }
 
-int	add_path(char *path, char *dir, char **path_arr)
+int		add_path(char *path, char *dir, char **path_arr)
 {
-	int	i;
+	int		i;
 
 	i = count_array(path_arr);
 	if (path[ft_strlen(path) - 1] != '/')
@@ -190,12 +191,21 @@ void	read_dir(char *path, char **new_paths, char **files, t_flags *flags)
 	closedir(cur_dir);
 }
 
+// void	detailed_print(char **files, t_flags *flags)
+// {
+	
+// }
+
 void	print_files(char **files, t_flags *flags)
 {
 	int	i;
 
 	i = 0;
-	if (flags->r)
+	if (flags->l)
+	{
+		// detailed_print(files, flags);
+	}
+	else if (flags->r)
 	{
 		i = count_array(files) - 1;
 		while (i >= 0)
@@ -221,6 +231,8 @@ void	print_result(char **files, \
 		sort_array(new_paths, flags);
 		expl_paths(new_paths, flags);
 	}
+	else
+		free(new_paths);
 }
 
 int	both_alloc(char **arr1, char **arr2)
@@ -305,6 +317,7 @@ char	**check_paths(char **paths)
 	if (!valid_paths)
 		free_array_exit(paths);
 	get_valid_paths(paths, valid_paths);
+	free_array(paths);
 	return (valid_paths);
 }
 
