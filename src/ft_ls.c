@@ -6,7 +6,7 @@
 /*   By: obibby <obibby@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/25 19:41:18 by obibby            #+#    #+#             */
-/*   Updated: 2025/01/27 15:00:44 by obibby           ###   ########.fr       */
+/*   Updated: 2025/01/27 23:21:52 by obibby           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,7 +128,7 @@ void	sort_array(char **paths, t_flags *flags)
 	return ;
 }
 
-int		add_path(char *path, char *dir, char **path_arr)
+int	add_path(char *path, char *dir, char **path_arr)
 {
 	int		i;
 
@@ -191,10 +191,171 @@ void	read_dir(char *path, char **new_paths, char **files, t_flags *flags)
 	closedir(cur_dir);
 }
 
-// void	detailed_print(char **files, t_flags *flags)
-// {
-	
-// }
+void	detailed_print_rev(char **file)
+{
+	int	i;
+
+	i = count_array(file) - 1;
+	while (i >= 0)
+	{
+		i--;
+	}
+}
+
+void	print_mod_time(time_t *t)
+{
+	char	*time_str;
+	int		i;
+
+	time_str = ctime(t);
+	i = 4;
+	while (time_str[i] && i < 16)
+		write(1, &time_str[i++], 1);
+}
+
+void	print_perm_usr(mode_t perms)
+{
+	if (perms & S_IRUSR)
+		write(1, "r", 1);
+	else
+		write(1, "-", 1);
+	if (perms & S_IWUSR)
+		write(1, "w", 1);
+	else
+		write(1, "-", 1);
+	if (perms & S_IXUSR)
+		write(1, "x", 1);
+	else
+		write(1, "-", 1);
+}
+
+void	print_perm_grp(mode_t perms)
+{
+	if (perms & S_IRGRP)
+		write(1, "r", 1);
+	else
+		write(1, "-", 1);
+	if (perms & S_IWGRP)
+		write(1, "w", 1);
+	else
+		write(1, "-", 1);
+	if (perms & S_IXGRP)
+		write(1, "x", 1);
+	else
+		write(1, "-", 1);
+}
+
+void	print_perm_oth(mode_t perms)
+{
+	if (perms & S_IROTH)
+		write(1, "r", 1);
+	else
+		write(1, "-", 1);
+	if (perms & S_IWOTH)
+		write(1, "w", 1);
+	else
+		write(1, "-", 1);
+	if (perms & S_IXOTH)
+		write(1, "x", 1);
+	else
+		write(1, "-", 1);
+}
+
+void	print_permissions(mode_t perms)
+{
+	if (S_ISDIR(perms))
+		write(1, "d", 1);
+	else
+		write(1, "-", 1);
+	print_perm_usr(perms);
+	print_perm_grp(perms);
+	print_perm_oth(perms);
+	write(1, " ", 1);
+}
+
+void	detailed_print(t_file **file)
+{
+	int	i;
+
+	i = 0;
+	while (file[i])
+	{
+		print_permissions(file[i]->mode);
+		ft_printf("%2d ", file[i]->nlink);
+		ft_printf("%6s ", file[i]->user);
+		ft_printf("%6s ", file[i]->group);
+		ft_printf("%6d ", file[i]->size);
+		print_mod_time(&file[i]->time);
+		ft_printf(" %s", ft_strrchr(file[i]->name, '/') + 1);
+		i++;
+		if (file[i])
+			write(1, "\n", 1);
+	}
+}
+
+void	free_file_info(t_file **file_info)
+{
+	int	i;
+
+	i = 0;
+	while (file_info[i])
+		free(file_info[i++]);
+	free(file_info);
+}
+
+int	gather_info(char **file, t_file **file_info, int i)
+{
+	struct stat	file_stat;
+	int			total;
+
+	file_info[i] = ft_calloc(1, sizeof(t_file));
+	if (!file_info[i])
+		return (-1);
+	lstat(file[i], &file_stat);
+	file_info[i]->name = file[i];
+	file_info[i]->mode = file_stat.st_mode;
+	file_info[i]->nlink = file_stat.st_nlink;
+	file_info[i]->user = getpwuid(file_stat.st_uid)->pw_name;
+	file_info[i]->group = getgrgid(file_stat.st_gid)->gr_name;
+	file_info[i]->size = file_stat.st_size;
+	file_info[i]->time = file_stat.st_mtime;
+	total = 0;
+	if (!S_ISDIR(file_stat.st_mode))
+	{
+		total += 8 * (file_stat.st_size / 4096);
+		if (file_stat.st_size % 4096)
+			total += 8;
+	}
+	return (total);
+}
+
+void	detailed_info(char **file)
+{
+	int			i;
+	t_file		**file_info;
+	int			total;
+	int			ret;
+
+	i = 0;
+	total = 0;
+	file_info = ft_calloc(count_array(file) + 1, sizeof(t_file *));
+	if (!file_info)
+		return ;
+	while (file[i])
+	{
+		ret = gather_info(file, file_info, i);
+		if (ret < 0)
+		{
+			free_file_info(file_info);
+			return ;
+		}
+		total += ret;
+		i++;
+	}
+	ft_printf("total %d\n", total);
+	detailed_print(file_info);
+	free_file_info(file_info);
+}
 
 void	print_files(char **files, t_flags *flags)
 {
@@ -203,7 +364,7 @@ void	print_files(char **files, t_flags *flags)
 	i = 0;
 	if (flags->l)
 	{
-		// detailed_print(files, flags);
+		detailed_info(files);
 	}
 	else if (flags->r)
 	{
