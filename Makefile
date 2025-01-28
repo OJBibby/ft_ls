@@ -3,7 +3,7 @@ CC		=	gcc
 CFLAGS	=	-Wall -Wextra -Werror
 OBJ_DIR	=	obj/
 SRC_DIR	=	src/
-SRCS	=	src/ft_ls.c
+SRCS	=	src/ft_ls.c src/input.c src/alloc.c src/check.c src/sort.c src/path.c src/print.c src/permissions.c src/dir.c
 OBJS	=	$(SRCS:$(SRC_DIR)%.c=$(OBJ_DIR)%.o)
 GREY	=	\33[1;30m
 BLUE	=	\33[0;34m
