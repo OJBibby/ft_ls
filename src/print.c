@@ -6,7 +6,7 @@
 /*   By: obibby <obibby@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 21:35:36 by obibby            #+#    #+#             */
-/*   Updated: 2025/01/28 21:39:55 by obibby           ###   ########.fr       */
+/*   Updated: 2025/01/29 12:54:29 by obibby           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,10 +31,10 @@ void	detailed_print(t_file **file)
 	while (file[i])
 	{
 		print_permissions(file[i]->mode);
-		ft_printf("%2d ", file[i]->nlink);
+		ft_printf("%1d ", file[i]->nlink);
 		ft_printf("%6s ", file[i]->user);
 		ft_printf("%6s ", file[i]->group);
-		ft_printf("%6d ", file[i]->size);
+		ft_printf("%5d ", file[i]->size);
 		print_mod_time(&file[i]->time);
 		ft_printf(" %s", ft_strrchr(file[i]->name, '/') + 1);
 		i++;
@@ -62,9 +62,9 @@ int	gather_info(char **file, t_file **file_info, int i)
 	total = 0;
 	if (!S_ISDIR(file_stat.st_mode))
 	{
-		total += 8 * (file_stat.st_size / 4096);
+		total += 4 * (file_stat.st_size / 4096);
 		if (file_stat.st_size % 4096)
-			total += 8;
+			total += 4;
 	}
 	return (total);
 }

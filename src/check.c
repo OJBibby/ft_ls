@@ -6,7 +6,7 @@
 /*   By: obibby <obibby@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 21:37:39 by obibby            #+#    #+#             */
-/*   Updated: 2025/01/28 21:39:21 by obibby           ###   ########.fr       */
+/*   Updated: 2025/01/29 12:51:53 by obibby           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,4 +47,32 @@ int	count_entries(char *str)
 	}
 	closedir(dir);
 	return (n);
+}
+
+int	both_alloc(char **arr1, char **arr2, char **paths)
+{
+	if (!arr1 && !arr2)
+	{
+		ft_printf("Memory allocation failed.\n");
+		if (paths)
+			free_array(paths);
+		return (0);
+	}
+	else if (!arr1)
+	{
+		ft_printf("Memory allocation failed.\n");
+		if (paths)
+			free_array(paths);
+		free(arr2);
+		return (0);
+	}
+	else if (!arr2)
+	{
+		ft_printf("Memory allocation failed.\n");
+		if (paths)
+			free_array(paths);
+		free(arr1);
+		return (0);
+	}
+	return (1);
 }

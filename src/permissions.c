@@ -6,13 +6,13 @@
 /*   By: obibby <obibby@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 21:34:23 by obibby            #+#    #+#             */
-/*   Updated: 2025/01/28 21:35:08 by obibby           ###   ########.fr       */
+/*   Updated: 2025/01/29 11:38:24 by obibby           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ls.h"
 
-void	print_perm_usr(mode_t perms)
+void	print_perm_usr(unsigned int perms)
 {
 	if (perms & S_IRUSR)
 		write(1, "r", 1);
@@ -28,7 +28,7 @@ void	print_perm_usr(mode_t perms)
 		write(1, "-", 1);
 }
 
-void	print_perm_grp(mode_t perms)
+void	print_perm_grp(unsigned int perms)
 {
 	if (perms & S_IRGRP)
 		write(1, "r", 1);
@@ -44,7 +44,7 @@ void	print_perm_grp(mode_t perms)
 		write(1, "-", 1);
 }
 
-void	print_perm_oth(mode_t perms)
+void	print_perm_oth(unsigned int perms)
 {
 	if (perms & S_IROTH)
 		write(1, "r", 1);
@@ -60,7 +60,7 @@ void	print_perm_oth(mode_t perms)
 		write(1, "-", 1);
 }
 
-void	print_permissions(mode_t perms)
+void	print_permissions(unsigned int perms)
 {
 	if (S_ISDIR(perms))
 		write(1, "d", 1);
